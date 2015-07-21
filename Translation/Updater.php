@@ -210,19 +210,19 @@ class Updater
         $this->config = $config;
 
         $this->logger->info(sprintf("Loading catalogues from \"%s\"", $config->getTranslationsDir()));
-        $this->existingCatalogue = new MessageCatalogue();
+
+        $this->existingCatalogue = $this->loader->loadFromDirectory(
+            $config->getTranslationsDir(), $config->getLocale()
+        );
 
         // load external resources, so current translations can be reused in the final translation
+        $this->externalTranslationsCatalogue = new MessageCatalogue();
         foreach ($config->getLoadResources() as $resource) {
-            $this->existingCatalogue->merge($this->loader->loadFromDirectory(
+            $this->externalTranslationsCatalogue->merge($this->loader->loadFromDirectory(
                 $resource,
                 $config->getLocale()
             ));
         }
-
-        $this->existingCatalogue->merge($this->loader->loadFromDirectory(
-            $config->getTranslationsDir(), $config->getLocale()
-        ));
 
         $this->extractor->reset();
         $this->extractor->setDirectories($config->getScanDirs());
@@ -233,6 +233,17 @@ class Updater
         $this->logger->info("Extracting translation keys");
         $this->scannedCatalogue = $this->extractor->extract();
         $this->scannedCatalogue->setLocale($config->getLocale());
+
+        // merge external translations into scanned messages
+        foreach ($this->scannedCatalogue->getDomains() as $domainCatalogue) {
+            foreach ($domainCatalogue->all() as $message) {
+                if (!$this->externalTranslationsCatalogue->has($message)) {
+                    continue;
+                }
+
+                $message->mergeExisting($this->externalTranslationsCatalogue->get($message->getId(), $message->getDomain()));
+            }
+        }
 
         // merge existing messages into scanned messages
         foreach ($this->scannedCatalogue->getDomains() as $domainCatalogue) {
