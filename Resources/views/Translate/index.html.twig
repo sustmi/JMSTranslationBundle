@@ -10,7 +10,11 @@
             $('#config select').change(function() {
                 $(this).parent().submit();
             });
-            
+
+            $('.truncate-left').truncate({
+                side: 'left'
+            });
+
             {% if isWriteable is sameas(true) %}
             $('textarea')
                 .blur(function() {
