@@ -34,7 +34,7 @@
                         <h6>Sources</h6>
                         <ul>
                         {% for source in message.sources %}
-                            <li title="{{ source }}" class="truncate-left">{{ source }}</li>
+                            <li title="{{ source }}" class="truncate-left">{{ source.toShortString }}</li>
                         {% endfor %}
                         </ul>
                     {% endif %}
