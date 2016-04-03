@@ -67,6 +67,14 @@ class FileSource implements SourceInterface
         return true;
     }
 
+    /**
+     * @return string
+     */
+    public function toShortString()
+    {
+        return sprintf('%s:%s', $this->path, $this->line);
+    }
+
     public function __toString()
     {
         $str = $this->path;
